@@ -33,13 +33,13 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-      - name: Pull latest changes from main
-        run: git pull origin main --rebase
-
-      - name: Commit updated points.json
+      - name: Stage and commit updated points.json
         run: |
           git add points.json
           git commit -m "Update points.json" || echo "No changes to commit"
+
+      - name: Pull latest from main
+        run: git pull origin main --rebase
 
       - name: Push changes to main
         run: git push origin HEAD:main
