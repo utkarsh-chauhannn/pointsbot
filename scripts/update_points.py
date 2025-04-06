@@ -51,7 +51,7 @@ def main():
     earned = EVENT_POINTS.get(event_type, 0)
 
     points[username] = current_points + earned
-    print(f"✅ {username} earned {earned} points for {event_type} — total: {points[username]}")
+    print(f" {username} earned {earned} points for {event_type} — total: {points[username]}")
 
     save_points(points)
 
