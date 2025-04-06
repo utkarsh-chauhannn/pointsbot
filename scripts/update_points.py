@@ -1,44 +1,55 @@
 import json
 import sys
+import os
 
-# Load event data (from GitHub Actions or local testing)
-if len(sys.argv) > 1:
-    with open(sys.argv[1], "r") as f:
-        event = json.load(f)
-else:
-    with open("sample_event.json", "r") as f:
-        event = json.load(f)
+# Define points for each event type
+POINTS = {
+    "push": 5,                # Code pushed
+    "pull_request": 10,       # PR opened
+    "issues": 3,              # Issue opened
+    "issue_comment": 2,       # Comment added
+    "pull_request_review": 4  # Review done
+}
 
-# Load current points
+# Get event file
+event_file = sys.argv[1] if len(sys.argv) > 1 else "sample_event.json"
+
+# Load GitHub event
+with open(event_file) as f:
+    event = json.load(f)
+
+# Detect event type automatically
+event_type = os.getenv("GITHUB_EVENT_NAME", "unknown")
+
+# Load or initialize points
 try:
-    with open("points.json", "r") as f:
+    with open("points.json") as f:
         points = json.load(f)
 except FileNotFoundError:
     points = {}
 
-# Determine user
-actor = event.get("sender", {}).get("login")
+# Get actor
+actor = (
+    event.get("sender", {}) or
+    event.get("pull_request", {}).get("user", {}) or
+    {}
+).get("login")
 
-# Determine action type and assign points
-if "commits" in event:
-    # push event
-    num_commits = len(event["commits"])
-    points[actor] = points.get(actor, 0) + (num_commits * 5)
-elif "pull_request" in event:
-    pr = event["pull_request"]
-    if event.get("action") == "opened":
-        points[actor] = points.get(actor, 0) + 10
-    elif event.get("action") == "closed" and pr.get("merged"):
-        points[actor] = points.get(actor, 0) + 20
-elif "issue" in event and event.get("action") == "opened":
-    points[actor] = points.get(actor, 0) + 5
-elif "comment" in event and event.get("action") == "created":
-    points[actor] = points.get(actor, 0) + 2
-elif "review" in event and event.get("action") == "submitted":
-    points[actor] = points.get(actor, 0) + 7
+# Update points if valid
+if actor and event_type in POINTS:
+    points[actor] = points.get(actor, 0) + POINTS[event_type]
+    print(f"✅ Added {POINTS[event_type]} points to {actor} for {event_type}")
+else:
+    print(f"⚠️ Skipping event '{event_type}' for actor '{actor}'")
 
-# Save back to file
+# Save updated points
 with open("points.json", "w") as f:
-    json.dump(points, f, indent=2)
+    json.dump(points, f, indent=2, sort_keys=True)
 
-print("Points updated successfully.")
+# Write markdown leaderboard
+with open("leaderboard.md", "w") as f:
+    f.write("# 🏆 GSoC-style Leaderboard\n\n")
+    for i, (user, score) in enumerate(sorted(points.items(), key=lambda x: x[1], reverse=True), 1):
+        f.write(f"{i}. **{user}** — {score} points\n")
+
+print("📊 Leaderboard generated.")
