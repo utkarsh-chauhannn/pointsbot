@@ -28,10 +28,18 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
 
-      - name: Commit updated points.json
+      - name: Configure Git
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
+
+      - name: Stage and commit updated points.json
+        run: |
           git add points.json
           git commit -m "Update points.json" || echo "No changes to commit"
-          git push
+
+      - name: Pull latest from main
+        run: git pull origin main --rebase
+
+      - name: Push changes to main
+        run: git push origin HEAD:main
