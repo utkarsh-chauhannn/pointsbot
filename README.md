@@ -1,6 +1,4 @@
 # PointsBot 🚀
-Tracks contribution points for members based on GitHub activity.
-# PointsBot 🚀
 
 **PointsBot** is a contribution-tracking bot that assigns and tracks points for members based on their GitHub activity. Perfect for hackathons, open-source competitions, or coding clubs to gamify participation and recognize top contributors.
 
@@ -32,3 +30,15 @@ Tracks contribution points for members based on GitHub activity.
 ```bash
 git clone https://github.com/your-org/pointsbot.git
 cd pointsbot
+npm install
+# or
+pip install -r requirements.txt
+
+GITHUB_TOKEN=your_github_pat
+REPO_OWNER=your-org
+REPO_NAME=your-repo
+DATABASE_URL=your_database_url (if using DB)
+
+npm start
+# or
+python bot.py
