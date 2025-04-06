@@ -43,7 +43,7 @@ def main():
     username = get_actor_username(event_data)
 
     if username == "unknown":
-        print("⚠️ Could not determine username. Exiting.")
+        print(" Could not determine username. Exiting.")
         sys.exit(1)
 
     points = load_points()
