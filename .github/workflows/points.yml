@@ -21,21 +21,15 @@ jobs:
           python-version: '3.10'
 
       - name: Dump GitHub Event
-        run: |
-          echo '${{ toJson(github.event) }}' > event.json
+        run: echo '${{ toJson(github.event) }}' > event.json
 
       - name: Run Point Tracker
-        run: |
-          python3 scripts/update_points.py event.json
+        run: python3 scripts/update_points.py event.json
 
-      - name: Save Points and Leaderboard
+      - name: Commit points.json
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🔄 Updated points and leaderboard [bot]"
-          branch: main
-          file_pattern: points.json leaderboard.md
+          commit_message: "🔄 Updated points [bot]"
+          file_pattern: points.json
           commit_user_name: Points Bot
           commit_user_email: pointsbot@example.com
-          repository: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          skip_dirty_check: true
