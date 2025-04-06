@@ -30,28 +30,15 @@
 ```bash
 git clone https://github.com/your-org/pointsbot.git
 cd pointsbot
-
-
 npm install
 # or
 pip install -r requirements.txt
-
 
 GITHUB_TOKEN=your_github_pat
 REPO_OWNER=your-org
 REPO_NAME=your-repo
 DATABASE_URL=your_database_url (if using DB)
 
-
 npm start
 # or
 python bot.py
-
-🎯 Points System (Example)
-Contribution Type	Points
-Pull Request Merged	10
-Issue Opened	3
-Commit	2
-Code Review	5
-Configurable in config.js or config.json
-
