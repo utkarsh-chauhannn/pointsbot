@@ -1,0 +1,30 @@
+name: Update Contributor Points
+
+on:
+  push:
+  pull_request:
+    types: [opened, closed]
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  update-points:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install PyGithub
+
+      - name: Run update script
+        run: python scripts/update_points.py $GITHUB_EVENT_PATH
