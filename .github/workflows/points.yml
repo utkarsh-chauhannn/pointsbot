@@ -10,9 +10,8 @@ on:
 jobs:
   track_points:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -20,16 +19,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Dump GitHub Event
+      - name: Simulate GitHub Event
         run: echo '${{ toJson(github.event) }}' > event.json
 
       - name: Run Point Tracker
-        run: python3 scripts/update_points.py event.json
+        run: |
+          python3 scripts/update_points.py event.json
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
 
-      - name: Commit points.json
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "🔄 Updated points [bot]"
-          file_pattern: points.json
-          commit_user_name: Points Bot
-          commit_user_email: pointsbot@example.com
+      - name: Commit updated points.json
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add points.json
+          git commit -m "Update points.json" || echo "No changes to commit"
+          git push
