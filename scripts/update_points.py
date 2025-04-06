@@ -1,55 +1,77 @@
 import json
-import sys
 import os
+import sys
+from collections import defaultdict
 
-# Define points for each event type
-POINTS = {
-    "push": 5,                # Code pushed
-    "pull_request": 10,       # PR opened
-    "issues": 3,              # Issue opened
-    "issue_comment": 2,       # Comment added
-    "pull_request_review": 4  # Review done
+POINTS_FILE = "points.json"
+LEADERBOARD_FILE = "leaderboard.md"
+
+# Points per event type
+EVENT_POINTS = {
+    "push": 5,
+    "pull_request": 10,
+    "issues": 7,
+    "issue_comment": 3,
+    "pull_request_review": 5
 }
 
-# Get event file
-event_file = sys.argv[1] if len(sys.argv) > 1 else "sample_event.json"
+# Load GitHub event from event.json
+def load_event(file_path):
+    with open(file_path, "r") as f:
+        return json.load(f)
 
-# Load GitHub event
-with open(event_file) as f:
-    event = json.load(f)
+# Load existing points data
+def load_points():
+    if os.path.exists(POINTS_FILE):
+        with open(POINTS_FILE, "r") as f:
+            return json.load(f)
+    return {}
 
-# Detect event type automatically
-event_type = os.getenv("GITHUB_EVENT_NAME", "unknown")
+# Save points to file
+def save_points(data):
+    with open(POINTS_FILE, "w") as f:
+        json.dump(data, f, indent=2)
 
-# Load or initialize points
-try:
-    with open("points.json") as f:
-        points = json.load(f)
-except FileNotFoundError:
-    points = {}
+# Generate and save leaderboard
+def save_leaderboard(points_data):
+    sorted_users = sorted(points_data.items(), key=lambda x: x[1], reverse=True)
+    with open(LEADERBOARD_FILE, "w") as f:
+        f.write("# 🏆 Leaderboard\n\n")
+        f.write("| Rank | Contributor | Points |\n")
+        f.write("|------|-------------|--------|\n")
+        for i, (user, pts) in enumerate(sorted_users, start=1):
+            f.write(f"| {i} | {user} | {pts} |\n")
 
-# Get actor
-actor = (
-    event.get("sender", {}) or
-    event.get("pull_request", {}).get("user", {}) or
-    {}
-).get("login")
+def get_actor_username(event):
+    return event.get("sender", {}).get("login", "unknown")
 
-# Update points if valid
-if actor and event_type in POINTS:
-    points[actor] = points.get(actor, 0) + POINTS[event_type]
-    print(f"✅ Added {POINTS[event_type]} points to {actor} for {event_type}")
-else:
-    print(f"⚠️ Skipping event '{event_type}' for actor '{actor}'")
+def get_event_type():
+    return os.getenv("GITHUB_EVENT_NAME", "unknown")
 
-# Save updated points
-with open("points.json", "w") as f:
-    json.dump(points, f, indent=2, sort_keys=True)
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: python update_points.py <event.json>")
+        sys.exit(1)
 
-# Write markdown leaderboard
-with open("leaderboard.md", "w") as f:
-    f.write("# 🏆 GSoC-style Leaderboard\n\n")
-    for i, (user, score) in enumerate(sorted(points.items(), key=lambda x: x[1], reverse=True), 1):
-        f.write(f"{i}. **{user}** — {score} points\n")
+    event_file = sys.argv[1]
+    event_data = load_event(event_file)
+    event_type = get_event_type()
+    username = get_actor_username(event_data)
 
-print("📊 Leaderboard generated.")
+    if username == "unknown":
+        print("⚠️ Could not determine username. Exiting.")
+        sys.exit(1)
+
+    # Load and update points
+    points = load_points()
+    current_points = points.get(username, 0)
+    earned = EVENT_POINTS.get(event_type, 0)
+
+    points[username] = current_points + earned
+    print(f"✅ {username} earned {earned} points for {event_type} — total: {points[username]}")
+
+    save_points(points)
+    save_leaderboard(points)
+
+if __name__ == "__main__":
+    main()
