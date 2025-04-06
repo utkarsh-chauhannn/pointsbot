@@ -21,7 +21,7 @@ jobs:
 
       - name: Simulate GitHub Event
         run: |
-          echo "${{ toJson(github.event) }}" > event.json
+          printf '%s' '${{ toJson(github.event) }}' > event.json
 
       - name: Run Point Tracker
         run: |
