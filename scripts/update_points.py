@@ -8,8 +8,8 @@ EVENT_POINTS = {
     "push": 5,
     "pull_request": 10,
     "issues": 7,
-    "issue_comment": 3,
-    "pull_request_review": 5
+    "issue_comment": 3
+   
 }
 
 def load_event(file_path):
@@ -42,6 +42,12 @@ def main():
     event_type = get_event_type()
     username = get_actor_username(event_data)
 
+    # Debug output to understand the event during testing
+    print("DEBUG EVENT TYPE:", event_type)
+    print("DEBUG USERNAME:", username)
+    print("DEBUG RAW EVENT DATA:")
+    print(json.dumps(event_data, indent=2))
+
     if username == "unknown":
         print(" Could not determine username. Exiting.")
         sys.exit(1)
@@ -50,10 +56,12 @@ def main():
     current_points = points.get(username, 0)
     earned = EVENT_POINTS.get(event_type, 0)
 
-    points[username] = current_points + earned
-    print(f" {username} earned {earned} points for {event_type} — total: {points[username]}")
-
-    save_points(points)
+    if earned == 0:
+        print(f" No points configured for event type '{event_type}'")
+    else:
+        points[username] = current_points + earned
+        print(f" {username} earned {earned} points for {event_type} — total: {points[username]}")
+        save_points(points)
 
 if __name__ == "__main__":
     main()
