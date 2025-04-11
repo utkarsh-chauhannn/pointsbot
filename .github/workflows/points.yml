@@ -7,6 +7,9 @@ on:
   issue_comment:
   pull_request_review:
 
+permissions:
+  contents: write  # Needed to push to repo
+
 jobs:
   track_points:
     runs-on: ubuntu-latest
@@ -29,18 +32,21 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
 
+      - name: Generate Leaderboard
+        run: |
+          python3 scripts/generate_leaderboard.py
+          git add leaderboard.md
+
       - name: Configure Git
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
 
-      - name: Stage and commit updated points.json
+      - name: Commit and Pull latest
         run: |
           git add points.json
-          git commit -m "Update points.json" || echo "No changes to commit"
-
-      - name: Pull latest from main
-        run: git pull origin main --rebase
+          git commit -m "🔁 Auto-update points and leaderboard" || echo "No changes to commit"
+          git pull origin main --rebase || echo "No need to rebase"
 
       - name: Push changes to main
         run: git push origin HEAD:main || echo "No changes to push"
